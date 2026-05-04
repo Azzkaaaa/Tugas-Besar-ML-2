@@ -6,9 +6,9 @@ def relu(x):
 
 
 def softmax(x):
-    x_shifted = x - np.max(x)
+    x_shifted = x - np.max(x, axis=-1, keepdims=True)
     exp_x = np.exp(x_shifted)
-    return exp_x / np.sum(exp_x)
+    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
 
 
 def sigmoid(x):

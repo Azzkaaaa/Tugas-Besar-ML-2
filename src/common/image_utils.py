@@ -63,11 +63,13 @@ def list_image_paths_by_class(root_dir):
     image_paths = []
     labels = []
 
+    valid_exts = {".jpg", ".jpeg", ".png"}
+
     for class_name in class_names:
         class_dir = root_dir / class_name
 
-        for ext in ("*.jpg", "*.jpeg", "*.png"):
-            for image_path in class_dir.glob(ext):
+        for image_path in class_dir.rglob("*"):
+            if image_path.is_file() and image_path.suffix.lower() in valid_exts:
                 image_paths.append(str(image_path))
                 labels.append(class_to_idx[class_name])
 
