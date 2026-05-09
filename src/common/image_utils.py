@@ -3,9 +3,9 @@ from PIL import Image
 import numpy as np
 
 
-def load_image(image_path, target_size=(150, 150)):
+def load_image(image_path, target_size=(150, 150), normalize_type=0):
     """
-    Load 1 gambar dari path, resize, ubah ke RGB, normalisasi ke [0, 1].
+    Load 1 gambar dari path, resize, ubah ke RGB, normalisasi ke [0, 1] atau [-1, 1].
     Parameters
     image_path : str or Path
         Path gambar.
@@ -22,10 +22,14 @@ def load_image(image_path, target_size=(150, 150)):
     img = img.resize((target_size[1], target_size[0]))
 
     arr = np.asarray(img, dtype=np.float32) / 255.0
+
+    if (normalize_type==1):
+        arr = arr * 2.0 - 1.0
+
     return arr
 
 
-def load_images(image_paths, target_size=(150, 150)):
+def load_images(image_paths, target_size=(150, 150), normalize_type=0):
     """
     Load banyak gambar menjadi batch NumPy.
 
@@ -39,7 +43,7 @@ def load_images(image_paths, target_size=(150, 150)):
     np.ndarray
         Batch gambar dengan shape (N, H, W, 3).
     """
-    images = [load_image(path, target_size) for path in image_paths]
+    images = [load_image(path, target_size, normalize_type) for path in image_paths]
     return np.stack(images, axis=0)
 
 
