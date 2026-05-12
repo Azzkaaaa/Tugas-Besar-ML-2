@@ -1,6 +1,14 @@
 import tensorflow as tf
 
-from src.cnn.scratch_layers_cnn import Conv2D, MaxPooling2D, Flatten, LocallyConnected2D, AveragePooling2D, GlobalAveragePooling2D
+from src.cnn.scratch_layers_cnn import (
+    Conv2D,
+    MaxPooling2D,
+    Flatten,
+    LocallyConnected2D,
+    AveragePooling2D,
+    GlobalAveragePooling2D,
+    GlobalMaxPooling2D,
+)
 from src.cnn.scratch_models import ScratchSequential
 from src.common.dense import Dense
 from src.cnn.keras_layers import KerasLocallyConnected2D
@@ -65,7 +73,27 @@ def build_scratch_local_from_keras_model(keras_model_or_path, config):
         else:
             raise ValueError(f"Pooling tidak dikenal: {pooling}")
 
-    layers.append(GlobalAveragePooling2D())
+    keras_layer_names = {layer.name for layer in keras_model.layers}
+    keras_layer_types = {layer.__class__.__name__ for layer in keras_model.layers}
+
+    if "flatten" in keras_layer_names or "Flatten" in keras_layer_types:
+        layers.append(Flatten())
+    elif (
+        "global_average_pooling2d" in keras_layer_names
+        or "GlobalAveragePooling2D" in keras_layer_types
+    ):
+        layers.append(GlobalAveragePooling2D())
+    elif (
+        "global_max_pooling2d" in keras_layer_names
+        or "GlobalMaxPooling2D" in keras_layer_types
+    ):
+        layers.append(GlobalMaxPooling2D())
+    else:
+        raise ValueError(
+            "Layer transisi ke Dense tidak ditemukan. "
+            "Gunakan Flatten, GlobalAveragePooling2D, atau GlobalMaxPooling2D "
+            "pada model Keras."
+        )
 
     dense1_w, dense1_b = keras_model.get_layer("dense1").get_weights()
     output_w, output_b = keras_model.get_layer("output").get_weights()
