@@ -114,12 +114,16 @@ def evaluate_model(model, X_cnn_test, y_captions_test_raw, max_length=40):
     predictions = []
     references = []
 
+    detailed_results = []
+    smoothie = SmoothingFunction().method4
+
     start_time = time.time()
 
     for i in range(len(X_cnn_test)):
         # gen prediction
         pred_cap = model.generate_caption(X_cnn_test[i], max_length=max_length)
-        predictions.append(pred_cap.split())
+        pred_tokens = pred_cap.split()
+        predictions.append(pred_tokens)
 
         img_refs = []
         for ref in y_captions_test_raw[i]:
@@ -127,12 +131,23 @@ def evaluate_model(model, X_cnn_test, y_captions_test_raw, max_length=40):
             img_refs.append(clean_ref)
         references.append(img_refs)
 
+        ind_bleu = sentence_bleu(img_refs, pred_tokens, smoothing_function=smoothie)
+        ind_meteor = meteor_score(img_refs, pred_tokens)
+
+        detailed_results.append({
+            "image_index": i,
+            "prediction": pred_cap,
+            "ground_truth": y_captions_test_raw[i][0],
+            "bleu4": ind_bleu,
+            "meteor": ind_meteor
+        })
+
     execution_time = time.time() - start_time
 
-    smoothie = SmoothingFunction().method4
-    bleu_score = corpus_bleu(references, predictions, smoothing_function=smoothie)
+    total_bleu = corpus_bleu(references, predictions, smoothing_function=smoothie)
+    total_meteor = np.mean([res["meteor"] for res in detailed_results])
 
-    return bleu_score, execution_time, predictions
+    return total_bleu, total_meteor, execution_time, detailed_results
 
 
 def generate_caption_keras(keras_model, cnn_feature, vocab, rev_vocab, model_max_seq_len, limit_length):
@@ -165,11 +180,15 @@ def evaluate_model_keras(keras_model, X_cnn_test, y_captions_test_raw, vocab, mo
     references = []
     rev_vocab = {v: k for k, v in vocab.items()}
 
+    detailed_results = []
+    smoothie = SmoothingFunction().method4
+
     start_time = time.time()
 
     for i in range(len(X_cnn_test)):
         pred_cap = generate_caption_keras(keras_model, X_cnn_test[i], vocab, rev_vocab, model_max_seq_len, limit_length)
-        predictions.append(pred_cap.split())
+        pred_tokens = pred_cap.split()
+        predictions.append(pred_tokens)
 
         img_refs = []
         for ref in y_captions_test_raw[i]:
@@ -177,8 +196,19 @@ def evaluate_model_keras(keras_model, X_cnn_test, y_captions_test_raw, vocab, mo
             img_refs.append(clean_ref)
         references.append(img_refs)
 
-    execution_time = time.time() - start_time
-    smoothie = SmoothingFunction().method4
-    bleu_score = corpus_bleu(references, predictions, smoothing_function=smoothie)
+        ind_bleu = sentence_bleu(img_refs, pred_tokens, smoothing_function=smoothie)
+        ind_meteor = meteor_score(img_refs, pred_tokens)
 
-    return bleu_score, execution_time
+        detailed_results.append({
+            "image_index": i,
+            "prediction": pred_cap,
+            "ground_truth": y_captions_test_raw[i][0],
+            "bleu4": ind_bleu,
+            "meteor": ind_meteor
+        })
+
+    execution_time = time.time() - start_time
+    total_bleu = corpus_bleu(references, predictions, smoothing_function=smoothie)
+    total_meteor = np.mean([res["meteor"] for res in detailed_results])
+
+    return total_bleu, total_meteor, execution_time, detailed_results
