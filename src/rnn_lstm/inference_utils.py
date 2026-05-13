@@ -1,6 +1,8 @@
 import time
 import numpy as np
-from nltk.translate.bleu_score import corpus_bleu, SmoothingFunction
+import tensorflow as tf
+from nltk.translate.bleu_score import corpus_bleu, sentence_bleu, SmoothingFunction
+from nltk.translate.meteor_score import meteor_score
 
 from src.common.dense import Dense
 from src.rnn_lstm.scratch_layers_rnn_lstm import Embedding, SimpleRNNCell, LSTMCell
@@ -141,10 +143,11 @@ def generate_caption_keras(keras_model, cnn_feature, vocab, rev_vocab, model_max
     stop_len = min(model_max_seq_len, limit_length)
 
     for i in range(1, stop_len):
-        preds = keras_model.predict([cnn_feature.reshape(1, -1), seq], verbose=0)
+        # preds = keras_model.predict([cnn_feature.reshape(1, -1), seq], verbose=0)
+        preds = keras_model([cnn_feature.reshape(1, -1), tf.convert_to_tensor(seq, dtype=tf.float32)], training=False)
 
         # get pred t-i
-        next_word_idx = np.argmax(preds[0, i])
+        next_word_idx = np.argmax(preds.numpy()[0, i])
 
         if next_word_idx == vocab["<end>"]:
             break
@@ -157,7 +160,7 @@ def generate_caption_keras(keras_model, cnn_feature, vocab, rev_vocab, model_max
 
     return " ".join(caption)
 
-def evaluate_keras_model(keras_model, X_cnn_test, y_captions_test_raw, vocab, model_max_seq_len, limit_length=40):
+def evaluate_model_keras(keras_model, X_cnn_test, y_captions_test_raw, vocab, model_max_seq_len, limit_length=40):
     predictions = []
     references = []
     rev_vocab = {v: k for k, v in vocab.items()}
