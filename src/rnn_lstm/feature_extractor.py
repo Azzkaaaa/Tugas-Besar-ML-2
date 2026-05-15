@@ -1,44 +1,61 @@
+"""
+Feature Extractor untuk RNN/LSTM Image Captioning.
+
+Wrapper tipis di atas src.common.image_utils.extract_features()
+dengan default yang sesuai untuk pipeline Flickr8k captioning.
+"""
+
 import os
+from pathlib import Path
+from typing import Union, List, Optional
+
 import numpy as np
-from tensorflow.keras.applications import InceptionV3
-from src.common.image_utils import load_images
+from src.common.image_utils import extract_features, load_features_from_dir
 
 
-def extract_and_save_features(image_dir, output_dir, batch_size=32):
+def extract_and_save_features(
+    image_dir: Union[str, Path],
+    output_dir: Union[str, Path],
+    model_name: str = "InceptionV3",
+    batch_size: int = 32,
+    force: bool = False,
+) -> dict:
     """
-    Mengekstraksi fitur dari dataset gambar menggunakan InceptionV3 dan menyimpannya ke .npy
+    Mengekstraksi fitur dari semua gambar di suatu direktori menggunakan
+    pretrained CNN encoder (frozen) dan menyimpannya ke .npy.
+
+    Parameters
+    ----------
+    image_dir : str | Path
+        Direktori berisi gambar-gambar (.jpg, .jpeg, .png).
+    output_dir : str | Path
+        Direktori tempat menyimpan file .npy.
+    model_name : str
+        "InceptionV3" atau "VGG16".
+    batch_size : int
+        Jumlah gambar per batch.
+    force : bool
+        Jika True, ekstraksi ulang meskipun .npy sudah ada.
+
+    Returns
+    -------
+    dict
+        Mapping {image_filename: path_to_npy}.
     """
-    # include_top=False membuang layer klasifikasi akhir
-    # pooling='avg' biar outputnya vektor 1D (2048 untuk InceptionV3)
-    print("Loading InceptionV3")
-    encoder_model = InceptionV3(weights='imagenet', include_top=False, pooling='avg')
+    image_dir = Path(image_dir)
 
-    encoder_model.trainable = False
+    valid_exts = {".jpg", ".jpeg", ".png"}
+    image_paths = sorted([
+        str(p) for p in image_dir.iterdir()
+        if p.is_file() and p.suffix.lower() in valid_exts
+    ])
 
-    os.makedirs(output_dir, exist_ok=True)
+    print(f"Ditemukan {len(image_paths)} gambar di {image_dir}")
 
-    image_files = [f for f in os.listdir(image_dir) if f.endswith(('.jpg', '.jpeg', '.png'))]
-    total_images = len(image_files)
-    print(f"Jumlah gambar: {total_images}")
-
-    for i in range(0, total_images, batch_size):
-        batch_files = image_files[i : i + batch_size]
-        batch_paths = [os.path.join(image_dir, f) for f in batch_files]
-
-        batch_images = load_images(batch_paths, target_size=(299, 299))
-
-        # inceptionv3 input range: [-1, 1]
-        features = encoder_model.predict(batch_images, verbose=0)
-
-        for j, file_name in enumerate(batch_files):
-            base_name = os.path.splitext(file_name)[0]
-            save_path = os.path.join(output_dir, f"{base_name}.npy")
-
-            np.save(save_path, features[j])
-
-        print(f"Processed {min(i + batch_size, total_images)} / {total_images} images")
-
-    print("Ekstraksi fitur selesai")
-
-# if __name__ == "__main__":
-#     extract_and_save_features("data/Images", "results/rnn_lstm", batch_size=64)
+    return extract_features(
+        image_paths=image_paths,
+        output_path=output_dir,
+        model_name=model_name,
+        batch_size=batch_size,
+        force=force,
+    )
