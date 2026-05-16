@@ -12,19 +12,6 @@ def load_image(
     Load satu gambar dari file path menggunakan PIL.Image.open,
     resize ke dimensi target, konversi ke numpy array, dan normalisasi
     pixel values.
-
-    Parameters
-    image_path : str | Path
-        Path gambar.
-    target_size : tuple[int, int]
-        Ukuran target (height, width).
-    normalize_range : str
-        "0_1"  → normalisasi ke [0, 1]
-        "-1_1" → normalisasi ke [-1, 1] 
-
-    Returns
-    np.ndarray
-        Array gambar dengan shape (H, W, 3), dtype float32.
     """
     image_path = Path(image_path)
 
@@ -47,18 +34,6 @@ def load_images(
     """
     Load dan memproses sekumpulan gambar dari list file path menjadi
     numpy array dengan shape (N, H, W, C).
-
-    Parameters
-    image_paths : list[str | Path]
-        List path gambar.
-    target_size : tuple[int, int]
-        Ukuran target (height, width).
-    normalize_range : str
-        "0_1" atau "-1_1", diteruskan ke load_image().
-
-    Returns
-    np.ndarray
-        Batch gambar dengan shape (N, H, W, 3), dtype float32.
     """
     images = [
         load_image(p, target_size=target_size, normalize_range=normalize_range)
@@ -74,35 +49,6 @@ def extract_features(
     batch_size: int = 32,
     force: bool = False,
 ) -> dict:
-    """
-    Menerima list path gambar, menggunakan Keras CNN encoder (frozen)
-    untuk mengekstraksi feature vectors, dan menyimpan hasilnya ke disk
-    (format .npy) agar tidak perlu diekstraksi ulang.
-
-    Setiap gambar disimpan sebagai file .npy terpisah di output_path,
-    dengan nama file = nama gambar asli (tanpa ekstensi) + ".npy".
-
-    Jika file .npy sudah ada untuk suatu gambar, gambar tersebut akan
-    di-skip (kecuali force=True).
-
-    Parameters
-    ----------
-    image_paths : list[str | Path]
-        List path gambar yang akan diekstraksi fiturnya.
-    output_path : str | Path
-        Direktori tempat menyimpan file .npy.
-    model_name : str
-        Nama pretrained model Keras: "InceptionV3" atau "VGG16".
-    batch_size : int
-        Jumlah gambar per batch saat forward pass.
-    force : bool
-        Jika True, ekstraksi ulang meskipun file .npy sudah ada.
-
-    Returns
-    -------
-    dict
-        Mapping {image_filename: path_to_npy} untuk semua gambar yang diproses.
-    """
     import tensorflow as tf
 
     output_path = Path(output_path)
@@ -170,19 +116,6 @@ def extract_features(
 
 
 def load_feature(npy_path: Union[str, Path]) -> np.ndarray:
-    """
-    Load satu feature vector dari file .npy.
-
-    Parameters
-    ----------
-    npy_path : str | Path
-        Path ke file .npy hasil extract_features().
-
-    Returns
-    -------
-    np.ndarray
-        Feature vector 1D.
-    """
     return np.load(str(npy_path))
 
 
@@ -190,23 +123,6 @@ def load_features_from_dir(
     feature_dir: Union[str, Path],
     image_names: Optional[List[str]] = None,
 ) -> dict:
-    """
-    Load semua (atau subset) feature vectors dari direktori .npy.
-
-    Parameters
-    ----------
-    feature_dir : str | Path
-        Direktori berisi file-file .npy.
-    image_names : list[str] | None
-        Jika diberikan, hanya load fitur untuk image names ini
-        (tanpa ekstensi, misal ["image1", "image2"]).
-        Jika None, load semua file .npy di direktori.
-
-    Returns
-    -------
-    dict
-        Mapping {image_name: np.ndarray} feature vectors.
-    """
     feature_dir = Path(feature_dir)
     features = {}
 
@@ -225,25 +141,6 @@ def load_features_from_dir(
 def list_image_paths_by_class(
     root_dir: Union[str, Path],
 ) -> Tuple[List[str], List[int], List[str]]:
-    """
-    Ambil semua path gambar dan label berdasarkan folder kelas.
-    Cocok untuk dataset seperti Intel Image Classification yang menggunakan
-    struktur folder: root_dir/class_name/image.jpg
-
-    Parameters
-    ----------
-    root_dir : str | Path
-        Root directory yang berisi sub-folder per kelas.
-
-    Returns
-    -------
-    image_paths : list[str]
-        List path gambar.
-    labels : list[int]
-        List label integer sesuai urutan class_names.
-    class_names : list[str]
-        Nama kelas, diurutkan alfabet.
-    """
     root_dir = Path(root_dir)
 
     class_names = sorted([

@@ -1,13 +1,9 @@
 """
 Konfigurasi 16 variasi eksperimen CNN.
-
-Kombinasi hyperparameter:
   - Jumlah layer konvolusi : 2 variasi  (2, 3)
   - Banyak filter per layer: 2 variasi  ([32,64], [64,128])
   - Ukuran filter          : 2 variasi  (3, 5)
   - Jenis pooling          : 2 variasi  (max, average)
-
-Total = 2 x 2 x 2 x 2 = 16 arsitektur.
 """
 
 
@@ -24,7 +20,7 @@ def get_all_configs():
         "conv_layers":  int,
         "filters":      list[int],
         "kernel_sizes": list[int],
-        "pooling":      str,       # "max" | "average"
+        "pooling":      "max" | "average"
     }
     """
     configs = []
@@ -36,7 +32,7 @@ def get_all_configs():
                     if n_layers == 2:
                         filters = list(filters_base)
                     else:
-                        # Layer ke-3: kelipatan 2 dari filter terakhir
+                        # Layer ke-3 kelipatan 2 dari filter terakhir
                         filters = list(filters_base) + [filters_base[-1] * 2]
 
                     kernel_sizes = [kernel_size] * n_layers

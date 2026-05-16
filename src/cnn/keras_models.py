@@ -63,15 +63,9 @@ def build_local_cnn(input_shape=(150, 150, 3), num_classes=6):
 
     return model
 
-
-# ──────────────────────────────────────────────────────────────────────
-# Flexible builders (untuk 16 variasi eksperimen)
-# ──────────────────────────────────────────────────────────────────────
-
 def build_cnn_from_config(config, input_shape=(150, 150, 3), num_classes=6):
     """
     Build model CNN dari config dict.
-
     config keys: conv_layers, filters, kernel_sizes, pooling.
     """
     layer_list = [layers.Input(shape=input_shape)]

@@ -16,15 +16,6 @@ from src.cnn.keras_layers import KerasLocallyConnected2D
 
 
 def build_scratch_from_keras(keras_model_or_path, config):
-    """
-    Build model scratch (shared parameter / Conv2D) dari Keras model + config.
-
-    Parameters
-    ----------
-    keras_model_or_path : str | Path | tf.keras.Model
-    config : dict
-        Harus punya keys: conv_layers, kernel_sizes, pooling.
-    """
     keras_model = _load_keras(keras_model_or_path)
 
     scratch_layers = []
@@ -40,10 +31,10 @@ def build_scratch_from_keras(keras_model_or_path, config):
         else:
             scratch_layers.append(AveragePooling2D(pool_size=(2, 2)))
 
-    # Transition layer
+    # transition layer
     scratch_layers.append(_get_transition_layer(keras_model))
 
-    # Dense layers
+    # dense layers
     dense1_w, dense1_b = keras_model.get_layer("dense1").get_weights()
     output_w, output_b = keras_model.get_layer("output").get_weights()
     scratch_layers.append(Dense(dense1_w, dense1_b, activation="relu"))
@@ -53,15 +44,6 @@ def build_scratch_from_keras(keras_model_or_path, config):
 
 
 def build_scratch_local_from_keras(keras_model_or_path, config):
-    """
-    Build model scratch (non-shared / LocallyConnected2D) dari Keras model + config.
-
-    Parameters
-    ----------
-    keras_model_or_path : str | Path | tf.keras.Model
-    config : dict
-        Harus punya keys: conv_layers, kernel_sizes, pooling.
-    """
     keras_model = _load_keras(keras_model_or_path)
 
     scratch_layers = []

@@ -16,14 +16,6 @@ matplotlib.rcParams.update({
 
 
 def plot_loss_curves(history_dict, title="", save_path=None):
-    """
-    Plot training & validation loss dari history dict.
-
-    Parameters
-    ----------
-    history_dict : dict
-        Harus punya key 'loss' dan 'val_loss' (list of floats).
-    """
     fig, ax = plt.subplots(figsize=(6, 4))
 
     epochs = range(1, len(history_dict["loss"]) + 1)
@@ -43,9 +35,6 @@ def plot_loss_curves(history_dict, title="", save_path=None):
 
 
 def plot_all_loss_curves(all_results, save_path=None):
-    """
-    Grid plot loss curves untuk semua model sekaligus.
-    """
     n = len(all_results)
     cols = 4
     rows = (n + cols - 1) // cols
@@ -85,12 +74,8 @@ def plot_all_loss_curves(all_results, save_path=None):
 
 def _group_results(all_results, param_key):
     """
-    Kelompokkan result berdasarkan nilai hyperparameter tertentu.
-    param_key bisa: "conv_layers", "filters", "kernel_sizes", "pooling".
-
-    Returns
-    -------
-    dict : {param_value_str: [f1_scores]}
+    param_key: "conv_layers", "filters", "kernel_sizes", "pooling".
+    returns {param_value_str: [f1_scores]}
     """
     groups = {}
     for r in all_results:
@@ -109,9 +94,6 @@ def _group_results(all_results, param_key):
 
 def plot_hyperparameter_effect(all_results, param_key, title=None, save_path=None):
     """
-    Bar chart: pengaruh satu hyperparameter terhadap macro F1.
-    Menampilkan mean ± std dari F1 untuk setiap nilai hyperparameter.
-
     param_key : "conv_layers" | "filters" | "kernel_sizes" | "pooling"
     """
     LABELS = {
@@ -153,9 +135,6 @@ def plot_hyperparameter_effect(all_results, param_key, title=None, save_path=Non
 
 
 def plot_all_hyperparameter_effects(all_results, save_dir=None):
-    """
-    Plot pengaruh semua 4 hyperparameter (2x2 grid).
-    """
     PARAMS = ["conv_layers", "filters", "kernel_sizes", "pooling"]
     LABELS = {
         "conv_layers": "Jumlah Layer Konvolusi",
@@ -240,8 +219,7 @@ def plot_shared_vs_nonshared(
     save_dir=None,
 ):
     """
-    Perbandingan shared (Conv2D) vs non-shared (LocallyConnected2D).
-    Menampilkan: F1, jumlah parameter, dan loss curves.
+    F1, jumlah parameter, dan loss curves.
     """
     fig, axes = plt.subplots(1, 3, figsize=(16, 5))
 
@@ -363,7 +341,6 @@ def plot_loss_by_hyperparameter(all_results, param_key, save_dir=None):
     """
     Plot loss curves dikelompokkan berdasarkan hyperparameter.
     Satu subplot per nilai hyperparameter, di masing-masing subplot
-    ditampilkan semua model dengan nilai hyperparameter tersebut.
     """
     LABELS = {
         "conv_layers": "Jumlah Layer Konvolusi",
